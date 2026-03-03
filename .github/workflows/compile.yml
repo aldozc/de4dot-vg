@@ -1,18 +1,29 @@
-name: Build EXE
-on: workflow_dispatch
+name: Build EXE Manual
+on: workflow_dispatch  # Esto permite que aparezca el botón "Run workflow"
+
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: recursive # Descarga dnlib automáticamente
+
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
-      - name: Build
-        run: msbuild de4dot.sln /p:Configuration=Release
-      - name: Upload
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      - name: Restore Packages
+        run: nuget restore de4dot.sln
+
+      - name: Build Solution
+        run: msbuild de4dot.sln /p:Configuration=Release /p:Platform="Any CPU" /p:WarningLevel=0
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: de4dot-vg-compiled
-          path: de4dot.cui/bin/Release/
+          name: de4dot-vg-final
+          path: Release/ # Sube todo lo que se generó en la carpeta Release
